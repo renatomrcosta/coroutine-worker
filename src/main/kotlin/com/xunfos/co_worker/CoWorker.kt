@@ -4,8 +4,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -17,10 +15,10 @@ import kotlinx.coroutines.supervisorScope
  * Require instead lambdas instead of interfaces?
  */
 
-abstract class CoWorker<InputType, OutputType>(
-    private val inputFetch: Fetcher<InputType>,
-    private val transformation: Transformer<InputType, OutputType>,
-    private val outputter: Outputter<OutputType, Unit>
+class CoWorker<InputType, OutputType>(
+    private val fetchAction: suspend () -> InputType,
+    private val transformAction: suspend (InputType) ->  OutputType,
+    private val outputAction: suspend (OutputType) -> Unit
 ) {
     private lateinit var jobScope: Job
     private val inputChannel: Channel<InputType> by lazy { Channel<InputType>() }
@@ -31,53 +29,51 @@ abstract class CoWorker<InputType, OutputType>(
         job()
     }
 
-    suspend fun start() {
+    suspend fun work() {
         jobScope = supervisorScope {
             startJob {
                 while (isActive) {
-                    val input = inputFetch.fetch()
+                    val input = fetchAction()
                     inputChannel.send(input)
+
+                    println("sent $input")
                 }
             }
 
             startJob {
                 while (isActive) {
                     val input = inputChannel.receive()
-                    val transformed = transformation.transform(input)
+                    val transformed = transformAction(input)
                     outputChannel.send(transformed)
+
+                    println("sent $transformed")
                 }
             }
 
             startJob {
                 while (isActive) {
-                    val output = transformationChannel.receive()
-                    outputter.operate(output)
+                    val output = outputChannel.receive()
+                    outputAction(output)
                 }
             }
         }
     }
 
-    suspend fun stop() {
+    fun stop () {
+        inputChannel.close()
+        transformationChannel.close()
+        outputChannel.close()
+    }
+
+    suspend fun cancel() {
         if (this::jobScope.isInitialized) {
             try {
                 jobScope.cancelChildren()
             } catch (e: Exception) {
-                println(e) // TODO logs??
+                throw e
             } finally {
                 jobScope.join()
             }
         }
     }
-}
-
-abstract class Fetcher<T> {
-    abstract suspend fun fetch(): T
-}
-
-interface Outputter<T, U> {
-    suspend fun operate(input: T): U
-}
-
-interface Transformer<T, U> {
-    suspend fun transform(input: T): U
 }
