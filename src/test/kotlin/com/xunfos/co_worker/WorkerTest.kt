@@ -1,16 +1,40 @@
 package com.xunfos.co_worker
 
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldBeEqualIgnoringCase
 import io.kotest.matchers.string.shouldContain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
+import java.util.concurrent.atomic.AtomicInteger
 
 @ObsoleteCoroutinesApi
 class WorkerTest : DescribeSpec() {
     init {
-        describe("Worker - Execution Tests") {}
+        describe("Worker - Execution Tests") {
+
+            // EVALUATE -> DO I REALLY WANT THIS SUSPENSEFUL?
+            it("should execute in a suspenseful manner") {
+                // After running the worker block, the immediate next line can execute while the worker is suspended
+                // This is a really weird test, maybe I can think of something better later
+                val sharedMutableCounter = AtomicInteger(0)
+
+                val worker = Worker {
+                    //Allows suspense
+                    delay(200)
+                    sharedMutableCounter.addAndGet(1)
+                    sharedMutableCounter.get() shouldBe 1
+                }
+                 worker.run() // DO I WANT RUN TO JUST RETURN ME A JOB OR DO I WANT TO CONTROL THE EXECUTION?
+                sharedMutableCounter.get() shouldBe 0
+                delay(200)
+                sharedMutableCounter.get() shouldBe 1
+
+            }
+        }
         describe("Worker - Context Scope Tests") {
             it("should execute on the default thread when no contexts are specified") {
                 Worker {
