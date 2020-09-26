@@ -2,6 +2,7 @@ package com.xunfos.co_worker
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.isActive
@@ -14,29 +15,29 @@ import kotlinx.coroutines.supervisorScope
  * Probably use a builder -> Interestingly, how do I do that?
  * Require instead lambdas instead of interfaces?
  */
+fun <InputType, OutputType> coworker(lambda: CoWorker<InputType, OutputType>.() -> Unit) =
+    CoWorker<InputType, OutputType>().apply(lambda)
 
-class CoWorker<InputType, OutputType>(
-    private val fetchAction: suspend () -> InputType,
-    private val transformAction: suspend (InputType) ->  OutputType,
-    private val outputAction: suspend (OutputType) -> Unit
-) {
+class CoWorker<InputType, OutputType> {
+    lateinit var fetchAction: suspend () -> InputType
+    lateinit var transformAction: suspend (InputType) -> OutputType
+    lateinit var outputAction: suspend (OutputType) -> Unit
+
     private lateinit var jobScope: Job
     private val inputChannel: Channel<InputType> by lazy { Channel<InputType>() }
     private val transformationChannel: Channel<OutputType> by lazy { Channel<OutputType>() }
     private val outputChannel: Channel<OutputType> by lazy { Channel<OutputType>() }
 
-    fun <T> CoroutineScope.startJob(job: suspend () -> T) = launch {
+    private fun <T> CoroutineScope.startJob(job: suspend () -> T) = launch {
         job()
     }
 
-    suspend fun work() {
+    suspend fun start() {
         jobScope = supervisorScope {
             startJob {
                 while (isActive) {
                     val input = fetchAction()
                     inputChannel.send(input)
-
-                    println("sent $input")
                 }
             }
 
@@ -45,8 +46,6 @@ class CoWorker<InputType, OutputType>(
                     val input = inputChannel.receive()
                     val transformed = transformAction(input)
                     outputChannel.send(transformed)
-
-                    println("sent $transformed")
                 }
             }
 
@@ -59,10 +58,12 @@ class CoWorker<InputType, OutputType>(
         }
     }
 
-    fun stop () {
+    suspend fun stop() {
         inputChannel.close()
         transformationChannel.close()
         outputChannel.close()
+
+        jobScope.cancelAndJoin()
     }
 
     suspend fun cancel() {
