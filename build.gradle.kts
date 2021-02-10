@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    val kotestVersion = "4.2.5"
+    val kotestVersion = "4.4.1"
 
     implementation(kotlin("stdlib-jdk8"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
