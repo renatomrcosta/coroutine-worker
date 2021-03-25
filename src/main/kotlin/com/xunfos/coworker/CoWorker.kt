@@ -1,4 +1,4 @@
-package com.xunfos.co_worker
+package com.xunfos.coworker
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job

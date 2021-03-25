@@ -1,4 +1,4 @@
-package com.xunfos.co_worker.util
+package com.xunfos.coworker.util
 
 fun trace(msg: Any) = println("[${getThreadName()} - $msg]")
 

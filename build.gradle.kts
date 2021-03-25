@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.xunfos"
-version = "0.0.4"
+version = "0.0.5"
 
 repositories {
     mavenCentral()
@@ -42,7 +42,11 @@ publishing {
         }
     }
     publications {
-        create<MavenPublication>("co-worker") {
+        create<MavenPublication>("coworker") {
+            groupId = "com.xunfos"
+            artifactId = "coworker"
+            version = "0.0.5"
+
             from(components["java"])
         }
     }
