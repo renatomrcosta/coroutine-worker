@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.xunfos"
-version = "0.0.3"
+version = "0.0.4"
 
 repositories {
     mavenCentral()
@@ -42,7 +42,7 @@ publishing {
         }
     }
     publications {
-        create<MavenPublication>("default") {
+        create<MavenPublication>("co-worker") {
             from(components["java"])
         }
     }
