@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.3.72"
+    kotlin("jvm") version "1.4.32"
     `java-library`
     `maven-publish`
 }
@@ -12,13 +12,13 @@ repositories {
 }
 
 dependencies {
-    val kotestVersion = "4.2.5"
+//    val kotestVersion = "4.2.5"
 
     implementation(kotlin("stdlib-jdk8"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
-    testImplementation("io.kotest", "kotest-runner-junit5", kotestVersion) // for kotest framework
-    testImplementation("io.kotest", "kotest-assertions-core", kotestVersion) // for kotest core jvm assertions
-    testImplementation("io.kotest", "kotest-property", kotestVersion) // for kotest property test
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
+//    testImplementation("io.kotest", "kotest-runner-junit5", kotestVersion) // for kotest framework
+//    testImplementation("io.kotest", "kotest-assertions-core", kotestVersion) // for kotest core jvm assertions
+//    testImplementation("io.kotest", "kotest-property", kotestVersion) // for kotest property test
 }
 
 tasks {
