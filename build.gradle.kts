@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.xunfos"
-version = "0.0.6"
+version = "0.0.7"
 
 repositories {
     mavenCentral()
@@ -33,7 +33,7 @@ tasks {
 publishing {
     repositories {
         maven {
-            name = "GitHubPackages"
+            name = "coworker"
             url = uri("https://maven.pkg.github.com/renatomrcosta/co-worker")
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
@@ -45,7 +45,7 @@ publishing {
         create<MavenPublication>("coworker") {
             groupId = "com.xunfos"
             artifactId = "coworker"
-            version = "0.0.6"
+            version = "0.0.7"
 
             from(components["java"])
         }
